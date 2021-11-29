@@ -21,10 +21,10 @@ else()
   set(ARCHSUFFIX "linux-x64")
 endif()
 
-function(_node_module_download _URL _FILE)
+function(_node_module_download _MESSAGE _URL _FILE)
     get_filename_component(_DIR "${_FILE}" DIRECTORY)
     file(MAKE_DIRECTORY "${_DIR}")
-    message(STATUS "[Node.js] Downloading ${_URL}...")
+    message(STATUS "[Node.js] Downloading ${_MESSAGE} from ${_URL}...")
     file(DOWNLOAD "${_URL}" "${_FILE}" STATUS _STATUS TLS_VERIFY ON)
     list(GET _STATUS 0 _STATUS_CODE)
     if(NOT _STATUS_CODE EQUAL 0)
@@ -33,10 +33,10 @@ function(_node_module_download _URL _FILE)
     endif()
 endfunction()
 
-function(_node_module_unpack_tar_gz _URL _PATH _DEST)
+function(_node_module_unpack_tar_gz _MESSAGE _URL _PATH _DEST)
     string(RANDOM LENGTH 32 _TMP)
     set(_TMP "${CMAKE_BINARY_DIR}/${_TMP}")
-    _node_module_download("${_URL}" "${_TMP}.tar.gz")
+    _node_module_download("${_MESSAGE}" "${_URL}" "${_TMP}.tar.gz")
     file(REMOVE_RECURSE "${_DEST}" "${_TMP}")
     file(MAKE_DIRECTORY "${_TMP}")
     execute_process(COMMAND ${CMAKE_COMMAND} -E tar xfz "${_TMP}.tar.gz"
@@ -114,6 +114,7 @@ function(add_node_module NAME)
     # Install addon api
     if(_ADDON_VERSION AND NOT EXISTS "${_CACHE_DIR}/node-addon-api/${_ADDON_VERSION}/napi.h")
         _node_module_unpack_tar_gz(
+            "addon-api"
             "https://registry.npmjs.org/node-addon-api/-/node-addon-api-${_ADDON_VERSION}.tgz"
             "package"
             "${_CACHE_DIR}/node-addon-api/${_ADDON_VERSION}"
@@ -146,6 +147,7 @@ function(add_node_module NAME)
 
             if(NOT EXISTS "${LIB_DIST}")
                 _node_module_download(
+                    "lib-dist"
                     "${LIB_DIST_URL}"
                     "${LIB_DIST}"
                 )
